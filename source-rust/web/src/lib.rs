@@ -57,10 +57,13 @@ pub fn persist(){
 pub fn persist_preferences(){let(native,prefs)=with(|a|(a.native,json!({"theme":a.theme,"shortcut":a.shortcut,"looks":a.looks,"announcementDismissed":local_get("icon-studio-announcement-expanded-library-2026-10").as_deref()==Some("dismissed"),"favorites":local_get("icon-studio-favorites").and_then(|v|serde_json::from_str::<Value>(&v).ok()).unwrap_or(json!([]))})));if native{spawn_local(async move{if let Err(e)=api("updatePreferences",prefs).await{toast(e)}});}}
 pub fn mutate(f:impl FnOnce(&mut App)){snapshot();change(f);persist();render();}
 pub fn render(){
- let doc=document();let focus=doc.active_element().and_then(|e|e.get_attribute("data-field"));
+ let doc=document();let active=doc.active_element();
+ let focus=active.as_ref().and_then(|e|e.get_attribute("data-field"));
+ let selection=active.as_ref().and_then(|e|e.dyn_ref::<HtmlInputElement>()).and_then(|input|Some((input.selection_start().ok()??,input.selection_end().ok()??,input.selection_direction().ok()??)));
+
  let scroll=doc.query_selector_all(".inspector-scroll,.library-grid,.modal-content").ok().map(|list|(0..list.length()).filter_map(|i|list.item(i)).filter_map(|n|n.dyn_into::<Element>().ok()).map(|e|e.scroll_top()).collect::<Vec<_>>()).unwrap_or_default();
  let html=with(ui::view);doc.get_element_by_id("app").unwrap().set_inner_html(&html);let _=doc.document_element().unwrap().set_attribute("data-theme",&with(|a|a.theme.clone()));
- if let Some(field)=focus{if let Ok(Some(el))=doc.query_selector(&format!("[data-field=\"{}\"]",field)){if let Some(input)=el.dyn_ref::<HtmlInputElement>(){let _=input.focus();}}}
+ if let Some(field)=focus{if let Ok(Some(el))=doc.query_selector(&format!("[data-field=\"{}\"]",field)){if let Some(input)=el.dyn_ref::<HtmlInputElement>(){let _=input.focus();if let Some((start,end,direction))=&selection{let _=input.set_selection_range_with_direction(*start,*end,direction);}}}}
  if let Ok(list)=doc.query_selector_all(".inspector-scroll,.library-grid,.modal-content"){for(i,pos)in scroll.iter().enumerate(){if let Some(n)=list.item(i as u32){if let Ok(el)=n.dyn_into::<Element>(){el.set_scroll_top(*pos);}}}}
 }
 pub async fn fetch_bytes(url:&str)->Result<Vec<u8>,String>{let response=JsFuture::from(window().fetch_with_str(url)).await.map_err(js_error)?.dyn_into::<Response>().map_err(js_error)?;if !response.ok(){return Err(format!("Download failed ({})",response.status()))}let buffer=JsFuture::from(response.array_buffer().map_err(js_error)?).await.map_err(js_error)?;Ok(js_sys::Uint8Array::new(&buffer).to_vec())}
