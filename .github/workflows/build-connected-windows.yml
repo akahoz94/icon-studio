@@ -1,0 +1,27 @@
+name: Build connected Windows app
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: source-rust
+    env:
+      RUSTFLAGS: -C target-feature=+crt-static
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build Windows app
+        run: cargo build -p icon-studio-app --release --locked
+      - name: Check native startup and updater safeguards
+        shell: pwsh
+        run: |
+          $check = Start-Process -FilePath (Resolve-Path target/release/IconStudioApp.exe) -ArgumentList '--self-test' -WindowStyle Hidden -Wait -PassThru
+          if ($check.ExitCode -ne 0) { throw "Native checks failed: $($check.ExitCode)" }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: connected-windows-app
+          path: source-rust/target/release/IconStudioApp.exe
+          retention-days: 7

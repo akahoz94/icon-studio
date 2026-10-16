@@ -2,7 +2,7 @@ use super::*;
 use ed25519_dalek::{Signature,VerifyingKey};
 use std::io::{Cursor,Write};
 
-const FEED:&str="https://iconeditor.pages.dev/app-release.json";
+const FEED:&str="https://iconeditor.pages.dev/app-release-v2.json";
 fn download(url:&str,limit:u64)->Result<Vec<u8>,String>{
  if !(url.starts_with("https://iconeditor.pages.dev/")||url.starts_with("https://github.com/toolatebysakib/icon-studio/releases/download/")){return Err("Untrusted update location".into())}
  let agent:ureq::Agent=ureq::Agent::config_builder().timeout_global(Some(Duration::from_secs(120))).build().into();
