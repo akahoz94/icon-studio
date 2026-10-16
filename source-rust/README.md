@@ -37,3 +37,9 @@ Install Rust, `wasm32-unknown-unknown`, matching wasm-bindgen CLI, and NSIS for 
 The source supports macOS WKWebView and includes a universal Mac build workflow. The new single-file installer and automatic native updates shipped in this release are Windows features. Mac runtime behavior is not verified here. The classic Resolve ZIP retains its Mac installer.
 
 App code is MIT licensed. Icon artwork and third-party dependencies retain their individual licenses. See `assets/THIRD-PARTY-NOTICES.md`, `assets/licenses/` and `assets/library/LICENSES.txt`.
+
+## Search and classic-script patch (5.0.1)
+
+The website header offers both the classic Resolve script and the Windows app. Search redraws preserve cursor position and selected text; duplicate blur/change events no longer re-enter the renderer.
+
+Existing 5.0.0 desktop installations need the 5.0.1 installer once. The original local update-signing key was lost, so the patch uses a replacement key and a separate `app-release-v2.json` feed. The prior `app-release.json` feed is preserved. The replacement private key is backed up separately and is never included in this repository or downloads. Subsequent native/editor updates use the new verified feed. The installer resets only the cached-editor pointer so its fixed bundled editor opens immediately; project files and settings are preserved.

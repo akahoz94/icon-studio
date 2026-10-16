@@ -1,4 +1,7 @@
 Unicode True
+!ifndef WEBVIEW2_BOOTSTRAPPER
+ !define WEBVIEW2_BOOTSTRAPPER "..\..\toolchain\MicrosoftEdgeWebview2Setup.exe"
+!endif
 !include "MUI2.nsh"
 !include "FileFunc.nsh"
 !include "x64.nsh"
@@ -71,6 +74,9 @@ Section "Icon Studio"
  File "package\WebView2Loader.dll"
  File "assets\app.ico"
  File /r "package\web"
+ ; A freshly installed bundle must take precedence over an older cached editor.
+ ; Exported icons, project state and cached editor folders are preserved.
+ Delete "$APPDATA\Icon Studio App by Sakib\active-editor.txt"
  CreateDirectory "$ResolveUtility\_IconStudioAppConnector"
  SetOutPath "$ResolveUtility\_IconStudioAppConnector"
  File "resolve\bridge.py.txt"
@@ -92,7 +98,7 @@ Section "Icon Studio"
  CreateShortcut "$SMPROGRAMS\Icon Studio\Icon Studio.lnk" "$INSTDIR\IconStudioApp.exe" "" "$INSTDIR\app.ico"
  CreateShortcut "$DESKTOP\Icon Studio.lnk" "$INSTDIR\IconStudioApp.exe" "" "$INSTDIR\app.ico"
  InitPluginsDir
- File /oname=$PLUGINSDIR\MicrosoftEdgeWebview2Setup.exe "..\..\toolchain\MicrosoftEdgeWebview2Setup.exe"
+ File /oname=$PLUGINSDIR\MicrosoftEdgeWebview2Setup.exe "${WEBVIEW2_BOOTSTRAPPER}"
  DetailPrint "Checking Microsoft WebView2…"
  ExecWait '"$PLUGINSDIR\MicrosoftEdgeWebview2Setup.exe" /silent /install' $0
  IfSilent 0 installcomplete
