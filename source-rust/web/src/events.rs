@@ -21,6 +21,9 @@ fn patch_preview(){with(|a|{if let Some(it)=a.items.get(a.active){if let Some(im
 fn handle_input(el:Element,committed:bool){
  if let Some(input)=el.dyn_ref::<HtmlInputElement>(){if input.type_()=="file"{if committed{if let Some(files)=input.files(){import_files(files)}}return}}
  let (value,checked)=input_value(&el);let field=el.get_attribute("data-field").unwrap_or_default();
+ // Text searches already update on input. Removing the focused field during
+ // a redraw can emit change; handling it again re-enters render and loses focus.
+ if committed&&matches!(field.as_str(),"search"|"quick-search"|"pack-search"){return}
  if let Some(key)=el.get_attribute("data-style"){
   let def=defaults()[&key].clone();let v=if def.is_boolean(){json!(checked)}else if def.is_number(){json!(value.parse::<f64>().unwrap_or(0.))}else{json!(value)};
   if key.to_lowercase().contains("color")&&key!="iconColorMode"&&!valid_color(v.as_str().unwrap_or("")){return}
